@@ -1,7 +1,7 @@
 use rand::{SeedableRng, rngs::StdRng};
 use ratatui::{
     style::{Color, Style, Styled},
-    widgets::{Widget, canvas::Canvas},
+    widgets::canvas::{Canvas, Context},
 };
 use rbonsai::bonsai::{self, TreeConfig, Val};
 
@@ -21,7 +21,7 @@ impl BonsaiWidget {
         }
     }
 
-    pub fn get(&self) -> impl Widget + '_ {
+    pub fn get(&self) -> Canvas<'_, impl Fn(&mut Context)> {
         Canvas::default()
             .x_bounds([0f64, self.config.max_x.into()])
             .y_bounds([0f64, self.config.max_y.into()])
