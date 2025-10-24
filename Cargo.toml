@@ -9,3 +9,4 @@ crossterm = "0.29.0"
 rand = "0.8.5"
 ratatui = "0.29.0"
 rbonsai = { git = "https://github.com/bonsai-rs/rbonsai", branch = "library-overhaul", version = "0.1.5" }
+tui-big-text = "0.7.1"
