@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use color_eyre::Result;
 use crossterm::event::{self, KeyCode};
+use rand::random;
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Flex, Layout},
@@ -22,13 +23,15 @@ fn main() -> Result<()> {
 struct App {
     timer_widget: TimerWidget,
     quit: bool,
+    seed: u64,
 }
 
 impl App {
-    const fn new() -> Self {
+    fn new() -> Self {
         App {
             timer_widget: TimerWidget::new(),
             quit: false,
+            seed: random(),
         }
     }
 
