@@ -1,7 +1,10 @@
 use std::time::{Duration, Instant};
 
 use color_eyre::Result;
-use crossterm::event::{self, KeyCode};
+use crossterm::{
+    event::{self, KeyCode},
+    terminal,
+};
 use rand::random;
 use ratatui::{
     DefaultTerminal, Frame,
@@ -9,7 +12,10 @@ use ratatui::{
 };
 
 mod widgets;
+use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
+
+use crate::widgets::bonsai::BonsaiWidget;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -22,16 +28,18 @@ fn main() -> Result<()> {
 
 struct App {
     timer_widget: TimerWidget,
+    bonsai_widget: Option<BonsaiWidget>,
     quit: bool,
-    seed: u64,
+    seed: Option<u64>,
 }
 
 impl App {
     fn new() -> Self {
         App {
             timer_widget: TimerWidget::new(),
+            bonsai_widget: None,
             quit: false,
-            seed: random(),
+            seed: None,
         }
     }
 
@@ -42,6 +50,26 @@ impl App {
             }
             self.handle_input();
             self.timer_widget.update();
+
+            if self.timer_widget.timer_startpoint.is_some() {
+                let elapsed_time = self
+                    .timer_widget
+                    .timer_startpoint
+                    .unwrap()
+                    .elapsed()
+                    .as_millis() as f32;
+                let goal = self.timer_widget.goal_duration.as_millis() as f32;
+
+                if elapsed_time >= goal {
+                    self.timer_widget.timer_startpoint = None;
+                } else {
+                    self.bonsai_widget
+                        .as_mut()
+                        .unwrap()
+                        .set_growth((elapsed_time / goal) * 100f32);
+                }
+            }
+
             terminal.draw(|frame: &mut Frame| {
                 self.render(frame);
             })?;
@@ -53,7 +81,19 @@ impl App {
             let e = event::read().unwrap();
             match e.as_key_event().unwrap().code {
                 KeyCode::Char('q') => self.quit = true,
-                KeyCode::Char(' ') => self.timer_widget.toggle(),
+                KeyCode::Char(' ') => {
+                    self.timer_widget.toggle();
+                    self.seed = Some(random());
+                    self.bonsai_widget = Some(BonsaiWidget::new(
+                        TreeConfig {
+                            max_x: terminal::size().unwrap().0 / 2,
+                            max_y: terminal::size().unwrap().1,
+                            life: 30,
+                            multiplier: 2,
+                        },
+                        self.seed.unwrap(),
+                    ));
+                }
                 KeyCode::Left | KeyCode::Char('h') => {
                     self.timer_widget.move_selector_left();
                 }
@@ -75,5 +115,9 @@ impl App {
                 .flex(Flex::Center);
         let [tree_area, timer_area] = horizontal.areas(frame.area());
         self.timer_widget.render(frame, timer_area);
+
+        if self.bonsai_widget.is_some() {
+            frame.render_widget(self.bonsai_widget.as_ref().unwrap().get(), tree_area);
+        }
     }
 }
