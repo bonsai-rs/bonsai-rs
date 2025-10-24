@@ -1,12 +1,13 @@
-use std::{sync::Mutex, thread, time::Duration};
+use std::time::Duration;
 
 use color_eyre::Result;
-use crossterm::event::{self, KeyCode, KeyEvent};
+use crossterm::event::{self, KeyCode};
 use ratatui::{
     DefaultTerminal, Frame,
-    layout::{Constraint, Flex, Layout, Rect},
-    widgets::{Block, Padding, Paragraph},
+    layout::{Constraint, Flex, Layout},
+    widgets::Block,
 };
+use tui_big_text::BigText;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -45,14 +46,24 @@ impl App {
                 .flex(Flex::Center);
         let [tree_area, timer_area] = horizontal.areas(frame.area());
 
-        let timer = Paragraph::new("Timer")
-            .block(
-                Block::bordered()
-                    .padding(Padding::new(0, 0, timer_area.height / 2, 0))
-                    .title("Timer"),
-            )
-            .centered();
+        let block = Block::bordered();
+        frame.render_widget(block, timer_area);
 
+        let timer = BigText::builder()
+            .pixel_size(tui_big_text::PixelSize::Quadrant)
+            .lines(vec!["00h 40min 30s".into()])
+            .centered()
+            .build();
+
+        let [_, _, timer_area, _, _] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Fill(1),
+            Constraint::Fill(1),
+            Constraint::Fill(1),
+            Constraint::Fill(1),
+        ])
+        .flex(Flex::Center)
+        .areas(timer_area);
         frame.render_widget(timer, timer_area);
     }
 }
