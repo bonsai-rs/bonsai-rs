@@ -14,8 +14,8 @@ enum TimeSelection {
 }
 
 pub struct TimerWidget {
-    timer_startpoint: Option<Instant>,
-    goal_duration: Duration,
+    pub timer_startpoint: Option<Instant>,
+    pub goal_duration: Duration,
     timer_display: String,
     time_selector: TimeSelection,
 }
@@ -24,7 +24,7 @@ impl TimerWidget {
     pub const fn new() -> Self {
         TimerWidget {
             timer_startpoint: None,
-            goal_duration: Duration::from_secs(45 * 60),
+            goal_duration: Duration::from_secs(20),
             timer_display: String::new(),
             time_selector: TimeSelection::Hours,
         }
@@ -83,6 +83,10 @@ impl TimerWidget {
             Some(t) => t.elapsed(),
             None => Duration::from_secs(0),
         };
+
+        if elapsed >= self.goal_duration {
+            return;
+        }
 
         let display_duration = self.goal_duration - elapsed;
         let seconds = display_duration.as_secs() % 60;
