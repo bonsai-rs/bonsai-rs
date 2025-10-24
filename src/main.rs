@@ -9,6 +9,7 @@ use rand::random;
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Flex, Layout},
+    widgets::Block,
 };
 
 mod widgets;
@@ -115,6 +116,10 @@ impl App {
                 .flex(Flex::Center);
         let [tree_area, timer_area] = horizontal.areas(frame.area());
         self.timer_widget.render(frame, timer_area);
+
+        // bonsai with bordered block
+        let block = Block::bordered();
+        frame.render_widget(block, tree_area);
 
         if self.bonsai_widget.is_some() {
             frame.render_widget(self.bonsai_widget.as_ref().unwrap().get(), tree_area);
