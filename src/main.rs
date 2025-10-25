@@ -30,7 +30,7 @@ fn main() -> Result<()> {
 
 struct App {
     timer_widget: TimerWidget,
-    bonsai_widget: Option<BonsaiWidget>,
+    bonsai_widget: BonsaiWidget,
     networking_widget: NetworkingWidget,
     quit: bool,
     seed: Option<u64>,
@@ -40,7 +40,16 @@ impl App {
     fn new() -> Self {
         App {
             timer_widget: TimerWidget::new(),
-            bonsai_widget: None,
+            // placeholder tree only for the pot
+            bonsai_widget: BonsaiWidget::new(
+                TreeConfig {
+                    max_x: terminal::size().unwrap().0 / 2,
+                    max_y: terminal::size().unwrap().1,
+                    life: 30,
+                    multiplier: 3,
+                },
+                0,
+            ),
             networking_widget: NetworkingWidget::new(),
             quit: false,
             seed: None,
@@ -69,8 +78,6 @@ impl App {
                     self.timer_widget.timer_startpoint = None;
                 } else {
                     self.bonsai_widget
-                        .as_mut()
-                        .unwrap()
                         .set_growth((elapsed_time / goal) * 100f32);
                 }
             }
@@ -89,7 +96,7 @@ impl App {
                 KeyCode::Char(' ') => {
                     self.timer_widget.toggle();
                     self.seed = Some(random());
-                    self.bonsai_widget = Some(BonsaiWidget::new(
+                    self.bonsai_widget = BonsaiWidget::new(
                         TreeConfig {
                             max_x: terminal::size().unwrap().0 / 2,
                             max_y: terminal::size().unwrap().1,
@@ -97,7 +104,7 @@ impl App {
                             multiplier: 3,
                         },
                         self.seed.unwrap(),
-                    ));
+                    );
                 }
                 KeyCode::Left | KeyCode::Char('h') => {
                     self.timer_widget.move_selector_left();
@@ -133,8 +140,6 @@ impl App {
         let block = Block::bordered();
         frame.render_widget(block, tree_area);
 
-        if self.bonsai_widget.is_some() {
-            frame.render_widget(self.bonsai_widget.as_ref().unwrap().get(), tree_area);
-        }
+        frame.render_widget(self.bonsai_widget.get(), tree_area);
     }
 }
