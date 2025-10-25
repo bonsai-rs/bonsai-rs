@@ -8,16 +8,21 @@ use crossterm::{
 use rand::random;
 use ratatui::{
     DefaultTerminal, Frame,
-    layout::{Constraint, Flex, Layout},
+    layout::{Constraint, Flex, Layout, Rect},
     widgets::Block,
 };
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
-use crate::{persistance::TreeStore, widgets::bonsai::BonsaiWidget, widgets::networking_widget::NetworkingWidget};
+use crate::views::tree_history::{self, TreeHistoryView};
+use crate::{
+    persistance::TreeStore, widgets::bonsai::BonsaiWidget,
+    widgets::networking_widget::NetworkingWidget,
+};
 
 mod persistance;
 mod util;
+mod views;
 mod widgets;
 
 fn main() -> Result<()> {
@@ -29,6 +34,11 @@ fn main() -> Result<()> {
     result
 }
 
+enum View {
+    Main,
+    History,
+}
+
 struct App {
     timer_widget: TimerWidget,
     bonsai_widget: BonsaiWidget,
@@ -36,6 +46,7 @@ struct App {
     quit: bool,
     config: Option<TreeConfig>,
     seed: Option<u64>,
+    view: View,
 }
 
 impl App {
@@ -56,10 +67,12 @@ impl App {
             quit: false,
             config: None,
             seed: None,
+            view: View::Main,
         }
     }
 
     pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
+        let mut thv = TreeHistoryView::new();
         loop {
             if self.quit {
                 return Result::Ok(());
@@ -90,14 +103,15 @@ impl App {
                 }
             }
 
-            terminal.draw(|frame: &mut Frame| {
-                self.render(frame);
+            terminal.draw(|frame: &mut Frame| match self.view {
+                View::Main => self.render(frame),
+                View::History => thv.render(frame),
             })?;
         }
     }
 
     fn handle_input(&mut self) {
-        if event::poll(Duration::from_millis(50)).unwrap() {
+        if event::poll(Duration::from_millis(200)).unwrap() {
             let e = event::read().unwrap();
             match e.as_key_event().unwrap().code {
                 KeyCode::Char('q') => self.quit = true,
@@ -123,6 +137,8 @@ impl App {
                     self.timer_widget.modify_goal_time(1);
                 }
                 KeyCode::Down | KeyCode::Char('j') => self.timer_widget.modify_goal_time(-1),
+                KeyCode::Char('n') => self.view = View::History,
+                KeyCode::Char('m') => self.view = View::Main,
                 _ => (),
             };
         }

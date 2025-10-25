@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions, read_to_string},
     io::{Error, ErrorKind, Write},
     path::PathBuf,
 };
@@ -40,4 +40,15 @@ pub fn add_tree(store: TreeStore) -> Result<(), Error> {
         .open(open_storage_file()?)?;
     writeln!(&mut file)?;
     file.write_all(serde_json::to_string(&store)?.as_bytes())
+}
+
+pub fn get_trees() -> Result<Vec<TreeStore>, Error> {
+    let mut result: Vec<TreeStore> = Vec::new();
+    for line in read_to_string(open_storage_file()?)?.lines() {
+        if line.is_empty() {
+            continue;
+        }
+        result.push(serde_json::from_str(line)?);
+    }
+    Ok(result)
 }
