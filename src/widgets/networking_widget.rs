@@ -13,14 +13,20 @@ pub struct NetworkingWidget {
 impl NetworkingWidget {
     pub fn new() -> Self {
         Self {
-            session_token: Some(1234),
-            users: vec![
-                "Ralf Schumacher".into(),
-                "Adrian Mü".into(),
-                "Günther Günther".into(),
-                "Thomas Anderss".into(),
-            ],
+            session_token: None,
+            users: vec![],
         }
+    }
+
+    pub fn generate_session(&mut self) {
+        let token = ureq::get("http://127.0.0.1:8000/session/create/")
+            .header("Content-Type", "text/plain")
+            .call()
+            .unwrap()
+            .body_mut()
+            .read_to_string()
+            .unwrap();
+        self.session_token = Some(token.parse().unwrap());
     }
 
     pub fn render(&self, frame: &mut Frame, area: Rect) {

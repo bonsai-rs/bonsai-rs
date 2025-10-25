@@ -14,7 +14,10 @@ use ratatui::{
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
-use crate::{persistance::TreeStore, widgets::bonsai::BonsaiWidget, widgets::networking_widget::NetworkingWidget};
+use crate::{
+    persistance::TreeStore, widgets::bonsai::BonsaiWidget,
+    widgets::networking_widget::NetworkingWidget,
+};
 
 mod persistance;
 mod util;
@@ -123,6 +126,7 @@ impl App {
                     self.timer_widget.modify_goal_time(1);
                 }
                 KeyCode::Down | KeyCode::Char('j') => self.timer_widget.modify_goal_time(-1),
+                KeyCode::Char('g') => self.networking_widget.generate_session(),
                 _ => (),
             };
         }
