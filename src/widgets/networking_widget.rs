@@ -33,7 +33,7 @@ impl NetworkingWidget {
                     .title_style(Style::default().add_modifier(Modifier::ITALIC))
                     .title_alignment(Alignment::Center);
                 let instructions = Paragraph::new(
-                    "[SPACE] to toggle timer\n[G] to generate session token\n[J] to join a session",
+                    "[SPACE] to toggle timer\n[G] to generate session token\n[J] to join a session\n[q]uit",
                 )
                 .centered();
 
@@ -41,11 +41,9 @@ impl NetworkingWidget {
                     Constraint::Fill(1),
                     Constraint::Fill(1),
                     Constraint::Fill(1),
-                    Constraint::Fill(1),
-                    Constraint::Fill(1),
                 ])
                 .flex(ratatui::layout::Flex::Center);
-                let [_, _, centered_area, _, _] = vertical.areas(area);
+                let [_, centered_area, _] = vertical.areas(area);
 
                 frame.render_widget(block, area);
                 frame.render_widget(instructions, centered_area);

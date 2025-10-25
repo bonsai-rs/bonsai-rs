@@ -105,10 +105,10 @@ impl App {
                 KeyCode::Right | KeyCode::Char('l') => {
                     self.timer_widget.move_selector_right();
                 }
-                KeyCode::Up | KeyCode::Char('j') => {
+                KeyCode::Up | KeyCode::Char('k') => {
                     self.timer_widget.modify_goal_time(1);
                 }
-                KeyCode::Down | KeyCode::Char('k') => self.timer_widget.modify_goal_time(-1),
+                KeyCode::Down | KeyCode::Char('j') => self.timer_widget.modify_goal_time(-1),
                 _ => (),
             };
         }
