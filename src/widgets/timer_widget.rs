@@ -3,7 +3,6 @@ use std::time::{Duration, Instant};
 use ratatui::{
     Frame,
     layout::{Constraint, Flex, Layout, Rect},
-    style::{Modifier, Style},
     widgets::Block,
 };
 use tui_big_text::BigText;

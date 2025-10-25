@@ -2,7 +2,7 @@ use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Modifier, Style},
-    widgets::{Block, Padding, Paragraph},
+    widgets::{Block, Paragraph},
 };
 
 pub struct NetworkingWidget {
