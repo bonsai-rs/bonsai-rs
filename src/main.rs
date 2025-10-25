@@ -14,7 +14,7 @@ use ratatui::{
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
-use crate::widgets::bonsai::BonsaiWidget;
+use crate::widgets::{bonsai::BonsaiWidget, networking_widget::NetworkingWidget};
 
 mod util;
 mod widgets;
@@ -31,6 +31,7 @@ fn main() -> Result<()> {
 struct App {
     timer_widget: TimerWidget,
     bonsai_widget: Option<BonsaiWidget>,
+    networking_widget: NetworkingWidget,
     quit: bool,
     seed: Option<u64>,
 }
@@ -40,6 +41,7 @@ impl App {
         App {
             timer_widget: TimerWidget::new(),
             bonsai_widget: None,
+            networking_widget: NetworkingWidget::new(),
             quit: false,
             seed: None,
         }
@@ -53,6 +55,7 @@ impl App {
             self.handle_input();
             self.timer_widget.update();
 
+            // timer is active?
             if self.timer_widget.timer_startpoint.is_some() {
                 let elapsed_time = self
                     .timer_widget
@@ -116,7 +119,15 @@ impl App {
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .flex(Flex::Center);
         let [tree_area, timer_area] = horizontal.areas(frame.area());
+
+        // timer at upper right corner
+        let vertical =
+            Layout::vertical([Constraint::Fill(2), Constraint::Fill(1)]).flex(Flex::Center);
+        let [timer_area, networking_area] = vertical.areas(timer_area);
         self.timer_widget.render(frame, timer_area);
+
+        // networking at bottom right corner
+        self.networking_widget.render(frame, networking_area);
 
         // bonsai with bordered block
         let block = Block::bordered();
