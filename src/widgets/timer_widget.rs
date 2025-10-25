@@ -1,9 +1,11 @@
 use std::time::{Duration, Instant};
 
+use color_eyre::owo_colors::OwoColorize;
 use ratatui::{
     Frame,
     layout::{Constraint, Flex, Layout, Rect},
-    widgets::Block,
+    style::{Modifier, Style},
+    widgets::{Block, block::Position},
 };
 use tui_big_text::BigText;
 
@@ -97,7 +99,10 @@ impl TimerWidget {
     }
 
     pub fn render(&self, frame: &mut Frame, area: Rect) {
-        let block = Block::bordered();
+        let block = Block::bordered()
+            .title_bottom("   SPACE to toggle timer   ")
+            .title_style(Style::default().add_modifier(Modifier::ITALIC))
+            .title_alignment(ratatui::layout::Alignment::Center);
         frame.render_widget(block, area);
 
         let (upper_selection_row, bottom_selection_row) = if self.timer_startpoint.is_some() {
