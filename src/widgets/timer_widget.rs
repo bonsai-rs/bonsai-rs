@@ -113,16 +113,18 @@ impl TimerWidget {
         let timer = BigText::builder()
             .pixel_size(tui_big_text::PixelSize::Quadrant)
             .lines(vec![
+                "".into(),
                 upper_selection_row.into(),
                 self.timer_display.clone().into(),
                 bottom_selection_row.into(),
+                "".into(),
             ])
             .centered()
             .build();
 
         let [_, timer_area, _] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Fill(1),
+            Constraint::Fill(3),
             Constraint::Fill(1),
         ])
         .flex(Flex::Center)

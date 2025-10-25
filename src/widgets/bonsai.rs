@@ -13,6 +13,7 @@ pub struct BonsaiWidget {
     growth: f32,
 }
 
+#[allow(dead_code)]
 impl BonsaiWidget {
     pub fn new(config: TreeConfig, seed: u64) -> Self {
         let mut rng = StdRng::seed_from_u64(seed);

@@ -14,7 +14,7 @@ use ratatui::{
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
-use crate::{persistance::TreeStore, widgets::bonsai::BonsaiWidget};
+use crate::{persistance::TreeStore, widgets::bonsai::BonsaiWidget, widgets::networking_widget::NetworkingWidget};
 
 mod persistance;
 mod util;
@@ -31,7 +31,8 @@ fn main() -> Result<()> {
 
 struct App {
     timer_widget: TimerWidget,
-    bonsai_widget: Option<BonsaiWidget>,
+    bonsai_widget: BonsaiWidget,
+    networking_widget: NetworkingWidget,
     quit: bool,
     config: Option<TreeConfig>,
     seed: Option<u64>,
@@ -41,7 +42,17 @@ impl App {
     fn new() -> Self {
         App {
             timer_widget: TimerWidget::new(),
-            bonsai_widget: None,
+            // placeholder tree only for the pot
+            bonsai_widget: BonsaiWidget::new(
+                TreeConfig {
+                    max_x: terminal::size().unwrap().0 / 2,
+                    max_y: terminal::size().unwrap().1,
+                    life: 30,
+                    multiplier: 3,
+                },
+                0,
+            ),
+            networking_widget: NetworkingWidget::new(),
             quit: false,
             config: None,
             seed: None,
@@ -56,6 +67,7 @@ impl App {
             self.handle_input();
             self.timer_widget.update();
 
+            // timer is active?
             if self.timer_widget.timer_startpoint.is_some() {
                 let elapsed_time = self
                     .timer_widget
@@ -74,8 +86,6 @@ impl App {
                     })?;
                 } else {
                     self.bonsai_widget
-                        .as_mut()
-                        .unwrap()
                         .set_growth((elapsed_time / goal) * 100f32);
                 }
             }
@@ -98,10 +108,10 @@ impl App {
                         max_x: terminal::size().unwrap().0 / 2,
                         max_y: terminal::size().unwrap().1,
                         life: 30,
-                        multiplier: 2,
+                        multiplier: 3,
                     });
                     self.bonsai_widget =
-                        Some(BonsaiWidget::new(self.config.unwrap(), self.seed.unwrap()));
+                        BonsaiWidget::new(self.config.unwrap(), self.seed.unwrap());
                 }
                 KeyCode::Left | KeyCode::Char('h') => {
                     self.timer_widget.move_selector_left();
@@ -109,10 +119,10 @@ impl App {
                 KeyCode::Right | KeyCode::Char('l') => {
                     self.timer_widget.move_selector_right();
                 }
-                KeyCode::Up | KeyCode::Char('j') => {
+                KeyCode::Up | KeyCode::Char('k') => {
                     self.timer_widget.modify_goal_time(1);
                 }
-                KeyCode::Down | KeyCode::Char('k') => self.timer_widget.modify_goal_time(-1),
+                KeyCode::Down | KeyCode::Char('j') => self.timer_widget.modify_goal_time(-1),
                 _ => (),
             };
         }
@@ -123,14 +133,20 @@ impl App {
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .flex(Flex::Center);
         let [tree_area, timer_area] = horizontal.areas(frame.area());
+
+        // timer at upper right corner
+        let vertical =
+            Layout::vertical([Constraint::Fill(2), Constraint::Fill(1)]).flex(Flex::Center);
+        let [timer_area, networking_area] = vertical.areas(timer_area);
         self.timer_widget.render(frame, timer_area);
+
+        // networking at bottom right corner
+        self.networking_widget.render(frame, networking_area);
 
         // bonsai with bordered block
         let block = Block::bordered();
         frame.render_widget(block, tree_area);
 
-        if self.bonsai_widget.is_some() {
-            frame.render_widget(self.bonsai_widget.as_ref().unwrap().get(), tree_area);
-        }
+        frame.render_widget(self.bonsai_widget.get(), tree_area);
     }
 }
