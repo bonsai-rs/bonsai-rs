@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use color_eyre::Result;
 use crossterm::{
@@ -14,8 +14,9 @@ use ratatui::{
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
-use crate::widgets::bonsai::BonsaiWidget;
+use crate::{persistance::TreeStore, widgets::bonsai::BonsaiWidget};
 
+mod persistance;
 mod util;
 mod widgets;
 
@@ -32,6 +33,7 @@ struct App {
     timer_widget: TimerWidget,
     bonsai_widget: Option<BonsaiWidget>,
     quit: bool,
+    config: Option<TreeConfig>,
     seed: Option<u64>,
 }
 
@@ -41,6 +43,7 @@ impl App {
             timer_widget: TimerWidget::new(),
             bonsai_widget: None,
             quit: false,
+            config: None,
             seed: None,
         }
     }
@@ -64,6 +67,11 @@ impl App {
 
                 if elapsed_time >= goal {
                     self.timer_widget.timer_startpoint = None;
+                    persistance::add_tree(TreeStore {
+                        config: self.config.unwrap(),
+                        seed: self.seed.unwrap(),
+                        withered: false,
+                    })?;
                 } else {
                     self.bonsai_widget
                         .as_mut()
@@ -86,15 +94,14 @@ impl App {
                 KeyCode::Char(' ') => {
                     self.timer_widget.toggle();
                     self.seed = Some(random());
-                    self.bonsai_widget = Some(BonsaiWidget::new(
-                        TreeConfig {
-                            max_x: terminal::size().unwrap().0 / 2,
-                            max_y: terminal::size().unwrap().1,
-                            life: 30,
-                            multiplier: 3,
-                        },
-                        self.seed.unwrap(),
-                    ));
+                    self.config = Some(TreeConfig {
+                        max_x: terminal::size().unwrap().0 / 2,
+                        max_y: terminal::size().unwrap().1,
+                        life: 30,
+                        multiplier: 2,
+                    });
+                    self.bonsai_widget =
+                        Some(BonsaiWidget::new(self.config.unwrap(), self.seed.unwrap()));
                 }
                 KeyCode::Left | KeyCode::Char('h') => {
                     self.timer_widget.move_selector_left();
