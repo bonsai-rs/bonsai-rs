@@ -14,8 +14,9 @@ use ratatui::{
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
-use crate::widgets::{bonsai::BonsaiWidget, networking_widget::NetworkingWidget};
+use crate::{persistance::TreeStore, widgets::bonsai::BonsaiWidget, widgets::networking_widget::NetworkingWidget};
 
+mod persistance;
 mod util;
 mod widgets;
 
@@ -33,6 +34,7 @@ struct App {
     bonsai_widget: BonsaiWidget,
     networking_widget: NetworkingWidget,
     quit: bool,
+    config: Option<TreeConfig>,
     seed: Option<u64>,
 }
 
@@ -52,6 +54,7 @@ impl App {
             ),
             networking_widget: NetworkingWidget::new(),
             quit: false,
+            config: None,
             seed: None,
         }
     }
@@ -76,6 +79,11 @@ impl App {
 
                 if elapsed_time >= goal {
                     self.timer_widget.timer_startpoint = None;
+                    persistance::add_tree(TreeStore {
+                        config: self.config.unwrap(),
+                        seed: self.seed.unwrap(),
+                        withered: false,
+                    })?;
                 } else {
                     self.bonsai_widget
                         .set_growth((elapsed_time / goal) * 100f32);
@@ -96,15 +104,14 @@ impl App {
                 KeyCode::Char(' ') => {
                     self.timer_widget.toggle();
                     self.seed = Some(random());
-                    self.bonsai_widget = BonsaiWidget::new(
-                        TreeConfig {
-                            max_x: terminal::size().unwrap().0 / 2,
-                            max_y: terminal::size().unwrap().1,
-                            life: 30,
-                            multiplier: 3,
-                        },
-                        self.seed.unwrap(),
-                    );
+                    self.config = Some(TreeConfig {
+                        max_x: terminal::size().unwrap().0 / 2,
+                        max_y: terminal::size().unwrap().1,
+                        life: 30,
+                        multiplier: 3,
+                    });
+                    self.bonsai_widget =
+                        BonsaiWidget::new(self.config.unwrap(), self.seed.unwrap());
                 }
                 KeyCode::Left | KeyCode::Char('h') => {
                     self.timer_widget.move_selector_left();
