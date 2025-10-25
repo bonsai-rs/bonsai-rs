@@ -1,6 +1,6 @@
 use ratatui::{
     Frame,
-    layout::{Alignment, Constraint, Layout, Rect},
+    layout::{Alignment, Constraint, Layout, Margin, Rect},
     style::{Modifier, Style},
     widgets::{Block, Paragraph},
 };
@@ -13,8 +13,13 @@ pub struct NetworkingWidget {
 impl NetworkingWidget {
     pub fn new() -> Self {
         Self {
-            session_token: None,
-            users: vec![],
+            session_token: Some(1234),
+            users: vec![
+                "Ralf Schumacher".into(),
+                "Adrian Mü".into(),
+                "Günther Günther".into(),
+                "Thomas Anderss".into(),
+            ],
         }
     }
 
@@ -26,6 +31,19 @@ impl NetworkingWidget {
                     .title_style(Style::default().add_modifier(Modifier::ITALIC))
                     .title_alignment(Alignment::Center);
                 frame.render_widget(block, area);
+
+                let inner_area = area.inner(Margin::new(2, 2));
+                let vertical = Layout::vertical([Constraint::Percentage(25), Constraint::Fill(1)]);
+                let [_, center_area] = vertical.areas(inner_area);
+
+                // user list
+                let mut user_list = String::new();
+                for i in 0..self.users.len() {
+                    user_list.push_str(format!("{}\n", self.users[i]).as_str());
+                }
+
+                let t = Paragraph::new(user_list).centered();
+                frame.render_widget(t, center_area);
             }
             None => {
                 let block = Block::bordered()
