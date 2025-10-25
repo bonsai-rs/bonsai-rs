@@ -11,12 +11,13 @@ use ratatui::{
     layout::{Constraint, Flex, Layout},
     widgets::Block,
 };
-
-mod widgets;
 use rbonsai::bonsai::TreeConfig;
 use widgets::timer_widget::TimerWidget;
 
 use crate::widgets::bonsai::BonsaiWidget;
+
+mod util;
+mod widgets;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -90,7 +91,7 @@ impl App {
                             max_x: terminal::size().unwrap().0 / 2,
                             max_y: terminal::size().unwrap().1,
                             life: 30,
-                            multiplier: 2,
+                            multiplier: 3,
                         },
                         self.seed.unwrap(),
                     ));
