@@ -1,6 +1,6 @@
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
 
-use crossterm::event::{self, KeyCode};
+use crossterm::event::KeyCode;
 use ratatui::{Frame, layout::Alignment, prelude::Rect, widgets::Block};
 
 use crate::{persistance, widgets::bonsai::BonsaiWidget};
@@ -23,26 +23,10 @@ impl TreeHistoryView {
         Self { page: 0, trees }
     }
 
-    pub fn render(&mut self, frame: &mut Frame) {
+    pub fn render(&mut self, frame: &mut Frame, input_events: Arc<Mutex<Vec<KeyCode>>>) {
         let (t_width, t_height) = crossterm::terminal::size().unwrap();
 
-        if event::poll(Duration::from_millis(500)).unwrap() {
-            let e = event::read().unwrap();
-            match e.as_key_event().unwrap().code {
-                KeyCode::Right => {
-                    if self.page < (self.trees.len() as f64 / 2.0).ceil() as u64 - 1 {
-                        self.page += 1;
-                    }
-                }
-                KeyCode::Left => 'left: {
-                    if !((self.page as i64 - 1) >= 0) {
-                        break 'left;
-                    }
-                    self.page -= 1
-                }
-                _ => (),
-            }
-        }
+        self.handle_input(input_events);
 
         frame.render_widget(
             Block::bordered()
@@ -58,7 +42,7 @@ impl TreeHistoryView {
 
         for (index, widget) in &mut self.trees[(self.page * 2) as usize
             ..=((self.page * 2) + 1) as usize
-                - if (self.page * 2) as usize == (self.trees.len() - 1) as usize {
+                - if (self.page * 2) as usize == (self.trees.len() - 1) {
                     self.trees.len() % 2
                 } else {
                     0
@@ -76,5 +60,27 @@ impl TreeHistoryView {
                 ),
             );
         }
+    }
+
+    fn handle_input(&mut self, input_events: Arc<Mutex<Vec<KeyCode>>>) {
+        input_events
+            .lock()
+            .unwrap()
+            .retain(|key_code| match key_code {
+                KeyCode::Right => {
+                    if self.page < (self.trees.len() as f64 / 2.0).ceil() as u64 - 1 {
+                        self.page += 1;
+                    }
+                    false
+                }
+                KeyCode::Left => {
+                    if (self.page as i64 - 1) >= 0 {
+                        self.page -= 1;
+                    }
+                    false
+                }
+
+                _ => false,
+            })
     }
 }
