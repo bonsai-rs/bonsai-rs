@@ -1,7 +1,7 @@
 use std::{
     env,
     fs::{self, OpenOptions, read_to_string},
-    io::{Error, ErrorKind, Write},
+    io::{Error, ErrorKind, Read, Write},
     path::PathBuf,
 };
 
@@ -43,8 +43,21 @@ pub fn add_tree(store: TreeStore) -> Result<(), Error> {
 }
 
 pub fn get_trees() -> Result<Vec<TreeStore>, Error> {
+    let file_path = open_storage_file().expect("Failed to construct the file path");
+    let mut file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(file_path)
+        .expect("Failed to open/create storage file");
+
+    let mut buffer = String::new();
+    file.read_to_string(&mut buffer)
+        .expect("Failed to read storage file to buffer");
+
     let mut result: Vec<TreeStore> = Vec::new();
-    for line in read_to_string(open_storage_file()?)?.lines() {
+    for line in buffer.lines() {
         if line.is_empty() {
             continue;
         }
