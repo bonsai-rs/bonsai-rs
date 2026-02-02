@@ -1,6 +1,7 @@
 use std::{
     sync::{Arc, Mutex},
     thread,
+    time::Duration,
 };
 
 use color_eyre::Result;
@@ -63,6 +64,8 @@ impl App {
                 View::Main => timer_view.render(frame, input_events),
                 View::History => tree_history_view.render(frame, input_events),
             })?;
+
+            thread::sleep(Duration::from_millis(50));
         }
     }
 
